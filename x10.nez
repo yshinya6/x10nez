@@ -85,8 +85,48 @@ example Type (ID : Int) => Int
 
 
 /* Statements */
-Block                     = { '{}' #Stub }
-Statement                 = { 'stmt' #Stub }
+Block                     = { "{" $list(BlockStatement)? "}" #Block }
+BlockStatement            = { $(BlockInteriorStatement)* #List}
+BlockInteriorStatement    = LocalVariableDeclarationStatement
+                          / ClassDeclaration
+                          / StructDeclaration
+                          / TypeDefDeclaration
+                          / Statement
+Statement                 = { $(AnnotationStatement) / $(ExpressionStatement) #Statement }
+LocalVariableDeclarationStatement = { $decl(LocalVariableDeclaration) ";" #LocalVarDeclStatement}
+ExpressionStatement       = { $expr(StatementExpression) } ";"
+LabeledStatement          = { Identifier ":" Statement #LabeledStatement}
+BreakStatement            = { "break" $id(Identifier)? ";" #Break}
+ContinueStatement         = { "continue" $id(Identifier)? #Continue}
+IfThenStatement           = { "if" "(" $(Expression) ")" $(Statement) ("else" $(Statement))? #If}
+_IfThenElseStatement      =   #IfThenElseStatement
+SwitchStatement           = { "switch" "(" Expression ")" SwitchBlock #SwitchStatement }
+SwitchBlock               = { "{" $list(SwitchBlockGroups)? $(SwitchLabels)?  "}" #Switch}
+SwitchBlockGroups         = { $(SwitchBlockGroup) #List}
+SwitchBlockGroup          = { $(SwitchLabels) $(BlockStatement) #SwitchBlockGroup }
+SwitchLabels              = { $list(SwitchLabel)* #List}
+SwitchLabel               = { "case" ConstantExpression ":" #Case}
+                          / { "default" ":" }
+WhileStatement            = { "while" "(" $(Expression) ")" #While }
+DoStatement               = { "do" $(Statement) "while" "(" $(Expression) ")" #DoWhile}
+ForStatement              = BasicForStatement
+                          / EnhancedForStatement
+BasicForStatement         = { "for" "(" $(ForInitializer)? ";" $(Expression)? ";" $(ForUpdater)? ")" $(Statement) #For}
+ForInitializer            = StatementExpressionList
+                          / LocalVariableDeclaration
+ForUpdater                = StatementExpression
+StatementExpressionList   = $(StatemenExpression) ("," $(StatementExpression))*
+EnhancedForStatement      = { "for" "(" $(LoopIndex) "in" $(Expression) "in" ")" $(Statement) #ForIn }
+                          / { "for" "(" $(Expression)")" #For}
+ReturnStatement           = { "return" $(Expression)? ";" #Return}
+AssertStatement           = { "assert" $(Expression) ";" #Assert}
+                          / { "assert" $(Expression) ":" $(Expression) ";" #Assert}
+ThrowStatement            = { "throw" $(Expression) ";" #Throw}
+TryStatement              = { "try" $(Block) $list(CatchList)? $(Finally) #TryCatch}
+CatchList                 = { $(Catch)* #List}
+Catch                     = { "catch" "(" Formals ")" $(Block) #Catch}
+Finally                   = { "finally" $(Block) #Finally }
+AnnotationStatement       = { $(Annotations)? $(NonExpressionStatement) #AnnotationStatement }
 
 example Block {}
 example Block '''
@@ -374,4 +414,3 @@ KEYWORD                   = "abstract" / "as" / "assert" / "async" / "at"
 "!~"                      = '!~'
 "-<"                      = '-<'
 ">-"                      = '>-'
-
