@@ -1,0 +1,377 @@
+/* Toplevel */
+File                      = CompilationUnit
+CompilationUnit           = { $(PackageDeclaration)? $(ImportDeclarations)? $(PackageDeclaration)? $(ImportDeclarations)? $(TypeDeclarations)? #Source }
+
+
+/* Code layout */
+_                         = ( WHITESPACE / BLOCKCOMMENT / LINECOMMENT )*
+WHITESPACE                = [ \t\f\r\n]
+BLOCKCOMMENT              = '/*' ( !'*/' . )* '*/'
+LINECOMMENT               = '//' ( ![\r\n] . )*
+W                         = [a-zA-Z_0-9]
+
+/* Declarations */
+PackageDeclaration        = { 'package P;' #Stub }
+ImportDeclarations        = { 'import I;' #Stub }
+
+TypeDeclarations          = { 'class X{}' #Stub }
+ClassDeclaration          = { 'class X{}' #Stub }
+StructDeclaration         = { 'struct X{}' #Stub }
+InterfaceDeclaration      = { 'interface X{}' #Stub }
+TypeDefDeclaration        = { 'type ID = int;' #Stub }
+
+MethodDeclaration         = { 'def x() {}' #Stub }
+ConstructorDeclaration    = { 'def this() {}' #Stub }
+PropertyMethodDeclaration = { 'x() {}' #Stub }
+
+FieldDeclaration          = { 'x:Int;' #Stub }
+LocalVariableDeclaration  = { 'var x = 1' #Stub }
+Formals                   = { '(ID : Int)' #Stub }
+LoopIndex                 = { 'li' #Stub }
+
+example PackageDeclaration '''
+package ID.ID;
+'''
+example ImportDeclarations '''
+import ID.ID;
+import ID.ID.*;
+'''
+example TypeDeclaration '''
+class ID implements ID {}
+'''
+example TypeDeclaration '''
+struct ID {}
+'''
+example TypeDeclaration '''
+Interface ID extends ID, ID {}
+'''
+example MethodDeclaration '''
+public def ID(ID : Int) : int {}
+'''
+example MethodDeclaration '''
+public operator !(ID : Int) {}
+'''
+example PropertyMethodDeclaration '''
+property ID(ID : Int) = exp;
+'''
+example FieldDeclaration '''
+private var ID : Int = 1;
+'''
+example LocalVariableDeclaration '''
+var ID : Int = 1;
+'''
+example LocalVariableDeclaration '''
+val ID = 1;
+'''
+example LocalVariableDeclaration '''
+var ID : Int;
+'''
+
+
+/* Types */
+Type                      = { 'Int' #Stub }
+
+Annotations               = { '@A' #Stub }
+
+TypeArguments             = { '[Int,Int]' #Stub }
+TypeParameters            = { '[ID,ID]' #Stub }
+TypeParametersI           = { '[ID,]' #Stub }
+
+example Type Int
+example Type ID[ID]
+example Type ID[ID,ID]
+example Type ID.ID
+example Type (ID : Int) => Int
+
+
+/* Statements */
+Block                     = { '{}' #Stub }
+Statement                 = { 'stmt' #Stub }
+
+example Block {}
+example Block '''
+{
+  class X{}
+  var x = 1;
+}
+'''
+example Statement ;
+example Statement var x = 1;
+example Statement {}
+example Statement exp;
+example Statement break;
+example Statement break ID;
+example Statement continue;
+example Statement if(exp) break;
+example Statement while(exp) {}
+example Statement do {} while(exp);
+example Statement for(exp; exp; exp) {}
+example Statement return exp;
+example Statement ID : return;
+example Statement assert exp;
+example Statement assert exp : exp;
+example Statement throw exp;
+example Statement '''
+switch(exp) {
+    case exp : break;
+    case exp : break;
+    default : break;
+}
+'''
+example Statement '''
+try {
+} catch (ID : Int) {
+} catch (ID : Int) {
+}
+'''
+example Statement '''
+try {
+} finally {
+}
+'''
+example Statement at(exp) {}
+example Statement async {}
+example Statement async clocked() {}
+example Statement clocked async {}
+example Statement finish {}
+example Statement clocked finish {}
+example Statement ateach(li in exp) {}
+example Statement ateach(exp) {}
+example Statement atomic {}
+example Statement when(exp) {}
+
+
+/* Expressions */
+Arguments                 = { '()' #Stub }
+Expression                = { 'exp' #Stub }
+
+example Expression ID
+example Expression 1
+example Expression this
+example Expression super.ID
+example Expression ID.ID(1, 1)
+example Expression ID += 1
+example Expression ID as Int
+example Expression -ID
+example Expression ~ID
+example Expression ID + 1
+example Expression ID - 1
+example Expression ID * 1
+example Expression ID / 1
+example Expression ID % 1
+example Expression ID << 1
+example Expression ID >> 1
+example Expression ID >>> 1
+example Expression ID & 1
+example Expression ID | 1
+example Expression ID ^ 1
+example Expression !ID
+example Expression ID && 1
+example Expression ID || 1
+example Expression ID < 1
+example Expression ID <= 1
+example Expression ID > 1
+example Expression ID >= 1
+example Expression ID == 1
+example Expression Int == Int
+example Expression ID instanceof Int
+example Expression (ID != 1) ? ID : ID
+example Expression new ID()
+example Expression ID.new ID()
+example Expression new ID() {}
+example Expression [1, 1, 1]
+example Expression (ID : Int) => @A {}
+example Expression at(this) ID
+
+
+/* Identifiers */
+Identifier                = { 'ID' #Stub }
+FullyQualifiedName        = { 'ID' #Stub }
+
+example Identifier Hoge_piyo
+example Identifier Fuga1
+example Identifier As
+example Identifier `while`
+example Identifier `0`
+example Identifier `!`
+example Identifier `(unbalanced(`
+example Identifier '''
+`\`\\`
+'''
+
+
+/* Literals */
+Literal                   = { '1' #Stub }
+
+example Literal true
+example Literal false
+example Literal null
+example Literal 123n
+example Literal -321N
+example Literal 0123n
+example Literal -0x123N
+example Literal 0XEBECN
+example Literal 1234567890
+example Literal 0xBABEL
+example Literal 123un
+example Literal 0123un
+example Literal 123u
+example Literal 0xFU
+example Literal 0xDecafC0ffeefU
+example Literal 414S
+example Literal 7001s
+example Literal 0xBeaus
+example Literal 50y
+example Literal 0xbuy
+example Literal 1f
+example Literal 6.626068E-34F
+example Literal 0.0
+example Literal 0e100
+example Literal 1.3d
+example Literal 314159265e-8
+example Literal '''
+'c'
+'''
+example Literal '''
+'\n'
+'''
+example Literal '''
+""
+'''
+example Literal '''
+"hello\040world!"
+'''
+
+
+/* Keywords and Operators */
+KEYWORD                   = "abstract" / "as" / "assert" / "async" / "at"
+                          / "athome" / "ateach" / "atomic" / "break" / "case"
+                          / "catch" / "class" / "clocked" / "continue" / "def"
+                          / "default" / "do" / "else" / "extends" / "false"
+                          / "final" / "finally" / "finish" / "for" / "goto"
+                          / "haszero" / "here" / "if" / "implements" / "import"
+                          / "in" / "instanceof" / "interface" / "native" / "new"
+                          / "null" / "offer" / "offers" / "operator" / "package"
+                          / "private" / "property" / "protected" / "public" / "return"
+                          / "self" / "static" / "struct" / "super" / "switch"
+                          / "this" / "throw" / "transient" / "true" / "try"
+                          / "type" / "val" / "var" / "void" / "when"
+                          / "while"
+"abstract"                = 'abstract' !W
+"as"                      = 'as' !W
+"assert"                  = 'assert' !W
+"async"                   = 'async' !W
+"at"                      = 'at' !W
+"athome"                  = 'athome' !W
+"ateach"                  = 'ateach' !W
+"atomic"                  = 'atomic' !W
+"break"                   = 'break' !W
+"case"                    = 'case' !W
+"catch"                   = 'catch' !W
+"class"                   = 'class' !W
+"clocked"                 = 'clocked' !W
+"continue"                = 'continue' !W
+"def"                     = 'def' !W
+"default"                 = 'default' !W
+"do"                      = 'do' !W
+"else"                    = 'else' !W
+"extends"                 = 'extends' !W
+"false"                   = 'false' !W
+"final"                   = 'final' !W
+"finally"                 = 'finally' !W
+"finish"                  = 'finish' !W
+"for"                     = 'for' !W
+"goto"                    = 'goto' !W
+"haszero"                 = 'haszero' !W
+"here"                    = 'here' !W
+"if"                      = 'if' !W
+"implements"              = 'implements' !W
+"import"                  = 'import' !W
+"in"                      = 'in' !W
+"instanceof"              = 'instanceof' !W
+"interface"               = 'interface' !W
+"native"                  = 'native' !W
+"new"                     = 'new' !W
+"null"                    = 'null' !W
+"offer"                   = 'offer' !W
+"offers"                  = 'offers' !W
+"operator"                = 'operator' !W
+"package"                 = 'package' !W
+"private"                 = 'private' !W
+"property"                = 'property' !W
+"protected"               = 'protected' !W
+"public"                  = 'public' !W
+"return"                  = 'return' !W
+"self"                    = 'self' !W
+"static"                  = 'static' !W
+"struct"                  = 'struct' !W
+"super"                   = 'super' !W
+"switch"                  = 'switch' !W
+"this"                    = 'this' !W
+"throw"                   = 'throw' !W
+"transient"               = 'transient' !W
+"true"                    = 'true' !W
+"try"                     = 'try' !W
+"type"                    = 'type' !W
+"val"                     = 'val' !W
+"var"                     = 'var' !W
+"void"                    = 'void' !W
+"when"                    = 'when' !W
+"while"                   = 'while' !W
+"("                       = '('
+")"                       = ')'
+"{"                       = '{'
+"}"                       = '}'
+"["                       = '['
+"]"                       = ']'
+";"                       = ';'
+","                       = ','
+"."                       = '.' ![.]
+"=="                      = '=='
+"!="                      = '!='
+"<"                       = '<' ![:<=]
+">"                       = '>' !( '-' / [=>] )
+"<="                      = '<='
+">="                      = '>='
+"&&"                      = '&&'
+"||"                      = '||'
+"&"                       = '&' ![&=]
+"|"                       = '|' ![=|]
+"^"                       = '^' ![=]
+"<<"                      = '<<' ![=]
+">>"                      = '>>' ![=>]
+">>>"                     = '>>>' ![=]
+"+"                       = '+' ![+=]
+"-"                       = '-' !( '-' / [<=>] )
+"*"                       = '*' ![*=]
+"/"                       = '/' ![=]
+"%"                       = '%' ![=]
+"++"                      = '++'
+"--"                      = '--'
+"!"                       = '!' ![=~]
+"~"                       = '~'
+"&="                      = '&='
+"|="                      = '|='
+"^="                      = '^='
+"<<="                     = '<<='
+">>="                     = '>>='
+">>>="                    = '>>>='
+"+="                      = '+='
+"-="                      = '-='
+"*="                      = '*='
+"/="                      = '/='
+"%="                      = '%='
+"="                       = '=' ![=>]
+"?"                       = '?'
+":"                       = ':' ![>]
+"=>"                      = '=>'
+"->"                      = '->'
+"<:"                      = '<:'
+":>"                      = ':>'
+"@"                       = '@'
+".."                      = '..'
+"**"                      = '**'
+"!~"                      = '!~'
+"-<"                      = '-<'
+">-"                      = '>-'
+
