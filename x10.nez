@@ -29,7 +29,7 @@ LocalVariableDeclaration  = { 'var x = 1' #Stub }
 Formals                   = { '(ID : Int)' #Stub }
 LoopIndex                 = { 'li' #Stub }
 
-example PackageDeclaration '''
+/*example PackageDeclaration '''
 package ID.ID;
 '''
 example ImportDeclarations '''
@@ -65,7 +65,7 @@ val ID = 1;
 '''
 example LocalVariableDeclaration '''
 var ID : Int;
-'''
+'''*/
 
 
 /* Types */
@@ -77,57 +77,87 @@ TypeArguments             = { '[Int,Int]' #Stub }
 TypeParameters            = { '[ID,ID]' #Stub }
 TypeParametersI           = { '[ID,]' #Stub }
 
-example Type Int
+/*example Type Int
 example Type ID[ID]
 example Type ID[ID,ID]
 example Type ID.ID
-example Type (ID : Int) => Int
+example Type (ID : Int) => Int*/
 
 
 /* Statements */
-Block                     = { "{" $list(BlockStatement)? "}" #Block }
-BlockStatement            = { $(BlockInteriorStatement)* #List}
+AnnotatedStatement        = {$ (Annotations)?} Statement
+Statement                 = Block
+                          / AssertStatement
+                          / SwitchStatement
+                          / DoStatement
+                          / BreakStatement
+                          / ContinueStatement
+                          / ReturnStatement
+                          / ThrowStatement
+                          / TryStatement
+                          / LabeledStatement
+                          / IfThenStatement
+                          / WhileStatement
+                          / ForStatement
+                          / AsyncStatement
+                          / AtStatement
+                          / AtomicStatement
+                          / WhenStatement
+                          / AtEachStatement
+                          / FinishStatement
+                          / AssignPropCall
+                          / ExpressionStatement
+                          / EmptyStatement
+Block                     = { "{" _ $list(BlockStatement)? _ "}"  #Block } _
+BlockStatement            = { ($(BlockInteriorStatement) _)* #List} _
 BlockInteriorStatement    = LocalVariableDeclarationStatement
                           / ClassDeclaration
                           / StructDeclaration
                           / TypeDefDeclaration
                           / Statement
-Statement                 = { $(AnnotationStatement) / $(ExpressionStatement) #Statement }
-LocalVariableDeclarationStatement = { $decl(LocalVariableDeclaration) ";" #LocalVarDeclStatement}
-ExpressionStatement       = { $expr(StatementExpression) } ";"
-LabeledStatement          = { Identifier ":" Statement #LabeledStatement}
-BreakStatement            = { "break" $id(Identifier)? ";" #Break}
-ContinueStatement         = { "continue" $id(Identifier)? #Continue}
-IfThenStatement           = { "if" "(" $(Expression) ")" $(Statement) ("else" $(Statement))? #If}
-_IfThenElseStatement      =   #IfThenElseStatement
-SwitchStatement           = { "switch" "(" Expression ")" SwitchBlock #SwitchStatement }
-SwitchBlock               = { "{" $list(SwitchBlockGroups)? $(SwitchLabels)?  "}" #Switch}
-SwitchBlockGroups         = { $(SwitchBlockGroup) #List}
-SwitchBlockGroup          = { $(SwitchLabels) $(BlockStatement) #SwitchBlockGroup }
-SwitchLabels              = { $list(SwitchLabel)* #List}
-SwitchLabel               = { "case" ConstantExpression ":" #Case}
-                          / { "default" ":" }
-WhileStatement            = { "while" "(" $(Expression) ")" #While }
-DoStatement               = { "do" $(Statement) "while" "(" $(Expression) ")" #DoWhile}
+AtStatement               = { "at" _ "(" _ $(Expression) _ $(ClosureBody) ")" #At} _
+ClosureBody               = Expression // Stub
+AsyncStatement            = { "async" _ $(ClockedClause)? $(Statement) #Async} _
+                          / { "clocked" _ "async" _ $(Statement) #Async} _
+ClockedClause              = { "clocked" _ $(Arguments) #Clocked} _
+FinishStatement           = { "finish" _ $(Statement) #Finish} _
+AtEachStatement           = { "ateach" _ "(" _ $(LoopIndex) "in" _ $(Expression) ")" _ $(ClockedClause)? $(Statement) #AtEach} _
+                          / { "ateach" _ "(" _ $(Expression) ")" _ $(Statement) #AtEach} _
+AtomicStatement           = { "atomic" _ $(Statement) #Atomic} _
+AssignPropCall            = { "property" _ $(TypeArguments)? "(" _ $(Arguments)? ")" } _
+WhenStatement             = { "when" _ "(" _ $(Expression) _ $(Statement) ")" When} _
+LocalVariableDeclarationStatement = LocalVariableDeclaration _ ";" _
+ExpressionStatement       = { $expr(StatementExpression)  #Expression } ";" _
+LabeledStatement          = { Identifier _ ":" _ Statement #LabeledStatement} _
+BreakStatement            = { "break" _ $id(Identifier)? ";" #Break} _
+ContinueStatement         = { "continue" _ $id(Identifier)? #Continue} _
+IfThenStatement           = { "if" _ "(" _ $(Expression) ")" _ $(Statement) ("else" _ $(Statement))? #If} _
+SwitchStatement           = { "switch" _ "(" _ $cond(Expression) _ ")" _ $body(SwitchBlock) #Switch } _
+SwitchBlock               = "{" _ { $(SwitchCondition)+ #Block } "}" _
+SwitchCondition           = { "case" _ $cond(Expression) _ ":" _ $body(CaseBlock) #SwitchCase } _
+                          / { "default" _ ":" _ $body(CaseBlock) #SwitchDefault } _
+CaseBlock                 = { $(BlockStatement)* #Block } _
+WhileStatement            = { "while" _ "(" _ $(Expression) ")" #While }_
+DoStatement               = { "do" _ $(Statement) "while" _ "(" _ $(Expression) ")" #DoWhile} _
 ForStatement              = BasicForStatement
                           / EnhancedForStatement
-BasicForStatement         = { "for" "(" $(ForInitializer)? ";" $(Expression)? ";" $(ForUpdater)? ")" $(Statement) #For}
+BasicForStatement         = { "for" _ "(" _ $(ForInitializer)? ";" _  $(Expression)? ";" _ $(ForUpdater)? ")" _ $(Statement) #For} _
 ForInitializer            = StatementExpressionList
                           / LocalVariableDeclaration
 ForUpdater                = StatementExpression
-StatementExpressionList   = $(StatemenExpression) ("," $(StatementExpression))*
-EnhancedForStatement      = { "for" "(" $(LoopIndex) "in" $(Expression) "in" ")" $(Statement) #ForIn }
-                          / { "for" "(" $(Expression)")" #For}
-ReturnStatement           = { "return" $(Expression)? ";" #Return}
-AssertStatement           = { "assert" $(Expression) ";" #Assert}
-                          / { "assert" $(Expression) ":" $(Expression) ";" #Assert}
-ThrowStatement            = { "throw" $(Expression) ";" #Throw}
-TryStatement              = { "try" $(Block) $list(CatchList)? $(Finally) #TryCatch}
-CatchList                 = { $(Catch)* #List}
-Catch                     = { "catch" "(" Formals ")" $(Block) #Catch}
-Finally                   = { "finally" $(Block) #Finally }
-AnnotationStatement       = { $(Annotations)? $(NonExpressionStatement) #AnnotationStatement }
-
+StatementExpressionList   = { $(StatementExpression) ("," _ $(StatementExpression))* #List} _
+StatementExpression       = Expression
+EnhancedForStatement      = { "for" _ "(" _ $(LoopIndex) "in" _ $(Expression) "in" _ ")" _ $(Statement) #ForIn } _
+                          / { "for" _ "(" _ $(Expression) ")" #For} _
+ReturnStatement           = { "return" _ $(Expression)? ";" #Return} _
+AssertStatement           = { "assert" _ $(Expression) ";" #Assert} _
+                          / { "assert" _ $(Expression) _ ":" _ $(Expression) ";" #Assert} _
+ThrowStatement            = { "throw" _ $(Expression) ";" #Throw} _
+TryStatement              = { "try" _ $(Block) $list(CatchList)? $(Finally) #TryCatch} _
+CatchList                 = { $(Catch)* #List} _
+Catch                     = { "catch" _ "(" _ Formals _ ")" _ $(Block) #Catch} _
+Finally                   = { "finally" _ $(Block) #Finally } _
+EmptyStatement            = ";" { #Empty} _
 example Block {}
 example Block '''
 {
@@ -136,7 +166,7 @@ example Block '''
 }
 '''
 example Statement ;
-example Statement var x = 1;
+example Statement { var x = 1; }
 example Statement {}
 example Statement exp;
 example Statement break;
@@ -185,7 +215,7 @@ example Statement when(exp) {}
 Arguments                 = { '()' #Stub }
 Expression                = { 'exp' #Stub }
 
-example Expression ID
+/*example Expression ID
 example Expression 1
 example Expression this
 example Expression super.ID
@@ -228,7 +258,7 @@ example Expression at(this) ID
 Identifier                = { 'ID' #Stub }
 FullyQualifiedName        = { 'ID' #Stub }
 
-example Identifier Hoge_piyo
+/*example Identifier Hoge_piyo
 example Identifier Fuga1
 example Identifier As
 example Identifier `while`
@@ -237,13 +267,13 @@ example Identifier `!`
 example Identifier `(unbalanced(`
 example Identifier '''
 `\`\\`
-'''
+'''*/
 
 
 /* Literals */
 Literal                   = { '1' #Stub }
 
-example Literal true
+/*example Literal true
 example Literal false
 example Literal null
 example Literal 123n
@@ -280,7 +310,7 @@ example Literal '''
 '''
 example Literal '''
 "hello\040world!"
-'''
+'''*/
 
 
 /* Keywords and Operators */
