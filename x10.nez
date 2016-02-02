@@ -16,6 +16,7 @@ ImportDeclarations        = { 'import I;' #Stub }
 
 TypeDeclarations          = { 'class X{}' #Stub }
 ClassDeclaration          = { 'class X{}' #Stub }
+ClassBody                 = { '{}' #Stub}
 StructDeclaration         = { 'struct X{}' #Stub }
 InterfaceDeclaration      = { 'interface X{}' #Stub }
 TypeDefDeclaration        = { 'type ID = int;' #Stub }
@@ -26,8 +27,12 @@ PropertyMethodDeclaration = { 'x() {}' #Stub }
 
 FieldDeclaration          = { 'x:Int;' #Stub }
 LocalVariableDeclaration  = { 'var x = 1' #Stub }
-Formals                   = { '(ID : Int)' #Stub }
+Formals                   = { 'ID : Int' #Stub }
+Formal                    = { 'ID : Int' #Stub }
 LoopIndex                 = { 'li' #Stub }
+
+Guard                     = { '{}' #Stub}
+HasResultType             = { '<: Int' #Stub}
 
 /*example PackageDeclaration '''
 package ID.ID;
@@ -70,7 +75,11 @@ var ID : Int;
 
 /* Types */
 Type                      = { 'Int' #Stub }
+NamedType                 = { 'Int' #Stub}
 
+DepParams                 = { '{exp}' #Stub}
+
+TypeName                  = { 'Int' #Stub}
 Annotations               = { '@A' #Stub }
 
 TypeArguments             = { '[Int,Int]' #Stub }
@@ -115,20 +124,20 @@ BlockInteriorStatement    = LocalVariableDeclarationStatement
                           / StructDeclaration
                           / TypeDefDeclaration
                           / Statement
-AtStatement               = { "at" _ "(" _ $(Expression) _ $(ClosureBody) ")" #At} _
-ClosureBody               = Expression // Stub
+AtStatement               = { "at" _ "(" _ $(Expression) _ ")" _ $(ClosureBody) #At} _
+ClosureBody               = Expression / '{}' // Stub
 AsyncStatement            = { "async" _ $(ClockedClause)? $(Statement) #Async} _
                           / { "clocked" _ "async" _ $(Statement) #Async} _
 ClockedClause              = { "clocked" _ $(Arguments) #Clocked} _
 FinishStatement           = { "finish" _ $(Statement) #Finish} _
-AtEachStatement           = { "ateach" _ "(" _ $(LoopIndex) "in" _ $(Expression) ")" _ $(ClockedClause)? $(Statement) #AtEach} _
-                          / { "ateach" _ "(" _ $(Expression) ")" _ $(Statement) #AtEach} _
+AtEachStatement           = { "ateach" _ "(" _ $(LoopIndex) _ "in" _ $(Expression) ")" _ $(ClockedClause)? $(Statement) #AtEach} _
+                          / { "ateach" _ "(" _ $(Expression) _ ")" _ $(Statement) #AtEach} _
 AtomicStatement           = { "atomic" _ $(Statement) #Atomic} _
-AssignPropCall            = { "property" _ $(TypeArguments)? "(" _ $(Arguments)? ")" } _
-WhenStatement             = { "when" _ "(" _ $(Expression) _ $(Statement) ")" When} _
+AssignPropCall            = { "property" _ $(TypeArguments)? "(" _ $(Arguments)? ")" #Property} _
+WhenStatement             = { "when" _ "(" _ $(Expression) _ ")" _ $(Statement) #When} _
 LocalVariableDeclarationStatement = LocalVariableDeclaration _ ";" _
 ExpressionStatement       = { $expr(StatementExpression)  #Expression } ";" _
-LabeledStatement          = { Identifier _ ":" _ Statement #LabeledStatement} _
+LabeledStatement          = { $(Identifier) _ ":" _ $(Statement) #LabeledStatement} _
 BreakStatement            = { "break" _ $id(Identifier)? ";" #Break} _
 ContinueStatement         = { "continue" _ $id(Identifier)? #Continue} _
 IfThenStatement           = { "if" _ "(" _ $(Expression) ")" _ $(Statement) ("else" _ $(Statement))? #If} _
@@ -145,17 +154,15 @@ BasicForStatement         = { "for" _ "(" _ $(ForInitializer)? ";" _  $(Expressi
 ForInitializer            = StatementExpressionList
                           / LocalVariableDeclaration
 ForUpdater                = StatementExpression
-StatementExpressionList   = { $(StatementExpression) ("," _ $(StatementExpression))* #List} _
-StatementExpression       = Expression
 EnhancedForStatement      = { "for" _ "(" _ $(LoopIndex) "in" _ $(Expression) "in" _ ")" _ $(Statement) #ForIn } _
                           / { "for" _ "(" _ $(Expression) ")" #For} _
 ReturnStatement           = { "return" _ $(Expression)? ";" #Return} _
 AssertStatement           = { "assert" _ $(Expression) ";" #Assert} _
                           / { "assert" _ $(Expression) _ ":" _ $(Expression) ";" #Assert} _
 ThrowStatement            = { "throw" _ $(Expression) ";" #Throw} _
-TryStatement              = { "try" _ $(Block) $list(CatchList)? $(Finally) #TryCatch} _
+TryStatement              = { "try" _ $(Block) $list(CatchList)? $(Finally)? #TryCatch} _
 CatchList                 = { $(Catch)* #List} _
-Catch                     = { "catch" _ "(" _ Formals _ ")" _ $(Block) #Catch} _
+Catch                     = { "catch" _ "(" _ $(Formals) _ ")" _ $(Block) #Catch} _
 Finally                   = { "finally" _ $(Block) #Finally } _
 EmptyStatement            = ";" { #Empty} _
 example Block {}
@@ -168,16 +175,16 @@ example Block '''
 example Statement ;
 example Statement { var x = 1; }
 example Statement {}
-example Statement exp;
+example Statement exp++;
 example Statement break;
 example Statement break ID;
 example Statement continue;
 example Statement if(exp) break;
 example Statement while(exp) {}
 example Statement do {} while(exp);
-example Statement for(exp; exp; exp) {}
+example Statement for(var x = 1; exp; exp++) {}
 example Statement return exp;
-example Statement ID : return;
+example Statement ID : while(exp){};
 example Statement assert exp;
 example Statement assert exp : exp;
 example Statement throw exp;
@@ -201,10 +208,10 @@ try {
 '''
 example Statement at(exp) {}
 example Statement async {}
-example Statement async clocked() {}
+example Statement async clocked(exp) {}
 example Statement clocked async {}
 example Statement finish {}
-example Statement clocked finish {}
+example Statement clocked async finish {}
 example Statement ateach(li in exp) {}
 example Statement ateach(exp) {}
 example Statement atomic {}
@@ -212,9 +219,14 @@ example Statement when(exp) {}
 
 
 /* Expressions */
-Arguments                 = { '()' #Stub }
+Arguments                 = { '(exp)' #Stub }
+ArgumentList              = { 'exp' #Stub}
 Expression                = { 'exp' #Stub }
 
+PrimaryExpression         = { 'exp' #Stub}
+
+StatementExpressionList   = { 'exp++' #Stub}
+StatementExpression   = { 'exp++' #Stub}
 /*example Expression ID
 example Expression 1
 example Expression this
@@ -255,6 +267,7 @@ example Expression at(this) ID
 
 
 /* Identifiers */
+IdentifierList            = { 'ID' #Stub }
 Identifier                = { 'ID' #Stub }
 FullyQualifiedName        = { 'ID' #Stub }
 
@@ -326,7 +339,7 @@ KEYWORD                   = "abstract" / "as" / "assert" / "async" / "at"
                           / "self" / "static" / "struct" / "super" / "switch"
                           / "this" / "throw" / "transient" / "true" / "try"
                           / "type" / "val" / "var" / "void" / "when"
-                          / "while"
+                          / "while" / "throws"
 "abstract"                = 'abstract' !W
 "as"                      = 'as' !W
 "assert"                  = 'assert' !W
@@ -399,7 +412,7 @@ KEYWORD                   = "abstract" / "as" / "assert" / "async" / "at"
 "."                       = '.' ![.]
 "=="                      = '=='
 "!="                      = '!='
-"<"                       = '<' ![:<=]
+"<"                       = '<' !( '-' / [:<=] )
 ">"                       = '>' !( '-' / [=>] )
 "<="                      = '<='
 ">="                      = '>='
@@ -444,3 +457,4 @@ KEYWORD                   = "abstract" / "as" / "assert" / "async" / "at"
 "!~"                      = '!~'
 "-<"                      = '-<'
 ">-"                      = '>-'
+"<-"                      = '<-'
