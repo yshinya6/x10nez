@@ -124,12 +124,13 @@ BlockInteriorStatement    = LocalVariableDeclarationStatement
                           / StructDeclaration
                           / TypeDefDeclaration
                           / Statement
-AtStatement               = { "at" _ "(" _ $(Expression) _ ")" _ $(ClosureBody) #At} _
+AtStatement               = { "at" _ "(" _ $(Expression) _ ")" _ $(Statement) #At} _
 ClosureBody               = Expression / '{}' // Stub
 AsyncStatement            = { "async" _ $(ClockedClause)? $(Statement) #Async} _
                           / { "clocked" _ "async" _ $(Statement) #Async} _
 ClockedClause              = { "clocked" _ $(Arguments) #Clocked} _
 FinishStatement           = { "finish" _ $(Statement) #Finish} _
+                          / { "clocked" _ "finish" _ $(Statement) #ClockedFinish} _
 AtEachStatement           = { "ateach" _ "(" _ $(LoopIndex) _ "in" _ $(Expression) ")" _ $(ClockedClause)? $(Statement) #AtEach} _
                           / { "ateach" _ "(" _ $(Expression) _ ")" _ $(Statement) #AtEach} _
 AtomicStatement           = { "atomic" _ $(Statement) #Atomic} _
@@ -146,7 +147,7 @@ SwitchBlock               = "{" _ { $(SwitchCondition)+ #Block } "}" _
 SwitchCondition           = { "case" _ $cond(Expression) _ ":" _ $body(CaseBlock) #SwitchCase } _
                           / { "default" _ ":" _ $body(CaseBlock) #SwitchDefault } _
 CaseBlock                 = { $(BlockStatement)* #Block } _
-WhileStatement            = { "while" _ "(" _ $(Expression) ")" #While }_
+WhileStatement            = { "while" _ "(" _ $(Expression) _ ")" _ $(Statement) #While } _
 DoStatement               = { "do" _ $(Statement) "while" _ "(" _ $(Expression) ")" #DoWhile} _
 ForStatement              = BasicForStatement
                           / EnhancedForStatement
@@ -211,7 +212,7 @@ example Statement async {}
 example Statement async clocked(exp) {}
 example Statement clocked async {}
 example Statement finish {}
-example Statement clocked async finish {}
+example Statement clocked finish {}
 example Statement ateach(li in exp) {}
 example Statement ateach(exp) {}
 example Statement atomic {}
